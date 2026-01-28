@@ -1,0 +1,128 @@
+[
+  {
+    "id": "ea5a054b-ab2c-4a47-942f-9b678d54a5db",
+    "scenario": {
+      "name": "race_run_1",
+      "description": "Auto-generated fail",
+      "mutation_type": "HTTP_5XX_SERVER_ERROR",
+      "parameters": {}
+    },
+    "requests": [
+      {
+        "url": "UNKNOWN",
+        "method": "UNKNOWN",
+        "headers": {},
+        "body": null,
+        "timestamp": "2026-01-28T11:16:38.066141",
+        "request_id": "37b97885-c897-4ce7-9361-9835c358ced7"
+      }
+    ],
+    "results": [
+      {
+        "request_id": "37b97885-c897-4ce7-9361-9835c358ced7",
+        "scenario_name": "race_run_1",
+        "status": "FAILURE",
+        "response": {
+          "status_code": 500,
+          "headers": {
+            "server": "BaseHTTP/0.6 Python/3.13.7",
+            "date": "Wed, 28 Jan 2026 05:46:37 GMT"
+          },
+          "body": "Internal Server Error (Simulated)",
+          "error": null
+        },
+        "metadata": {
+          "start_time": "2026-01-28T11:16:37.227905",
+          "end_time": "2026-01-28T11:16:37.600636",
+          "duration_ms": 372.731
+        }
+      }
+    ],
+    "timestamp": "2026-01-28T11:16:38.066239",
+    "analysis": "Detected failure type: HTTP_5XX_SERVER_ERROR. Code: 500"
+  },
+  {
+    "id": "8b3ceb9b-322b-4783-9b54-4bb4e8661a13",
+    "scenario": {
+      "name": "race_run_2",
+      "description": "Auto-generated fail",
+      "mutation_type": "HTTP_5XX_SERVER_ERROR",
+      "parameters": {}
+    },
+    "requests": [
+      {
+        "url": "UNKNOWN",
+        "method": "UNKNOWN",
+        "headers": {},
+        "body": null,
+        "timestamp": "2026-01-28T11:16:38.066258",
+        "request_id": "37b97885-c897-4ce7-9361-9835c358ced7"
+      }
+    ],
+    "results": [
+      {
+        "request_id": "37b97885-c897-4ce7-9361-9835c358ced7",
+        "scenario_name": "race_run_2",
+        "status": "FAILURE",
+        "response": {
+          "status_code": 500,
+          "headers": {
+            "server": "BaseHTTP/0.6 Python/3.13.7",
+            "date": "Wed, 28 Jan 2026 05:46:37 GMT"
+          },
+          "body": "Internal Server Error (Simulated)",
+          "error": null
+        },
+        "metadata": {
+          "start_time": "2026-01-28T11:16:37.228125",
+          "end_time": "2026-01-28T11:16:37.712266",
+          "duration_ms": 484.14099999999996
+        }
+      }
+    ],
+    "timestamp": "2026-01-28T11:16:38.066291",
+    "analysis": "Detected failure type: HTTP_5XX_SERVER_ERROR. Code: 500"
+  },
+  {
+    "id": "0d9a39a3-7ca7-4c8c-803a-ea18be471017",
+    "scenario": {
+      "name": "race_run_3",
+      "description": "Auto-generated fail",
+      "mutation_type": "HTTP_5XX_SERVER_ERROR",
+      "parameters": {}
+    },
+    "requests": [
+      {
+        "url": "UNKNOWN",
+        "method": "UNKNOWN",
+        "headers": {},
+        "body": null,
+        "timestamp": "2026-01-28T11:16:38.066302",
+        "request_id": "37b97885-c897-4ce7-9361-9835c358ced7"
+      }
+    ],
+    "results": [
+      {
+        "request_id": "37b97885-c897-4ce7-9361-9835c358ced7",
+        "scenario_name": "race_run_3",
+        "status": "FAILURE",
+        "response": {
+          "status_code": 500,
+          "headers": {
+            "server": "BaseHTTP/0.6 Python/3.13.7",
+            "date": "Wed, 28 Jan 2026 05:46:37 GMT"
+          },
+          "body": "Internal Server Error (Simulated)",
+          "error": null
+        },
+        "metadata": {
+          "start_time": "2026-01-28T11:16:37.228313",
+          "end_time": "2026-01-28T11:16:37.813607",
+          "duration_ms": 585.294
+        }
+      }
+    ],
+    "timestamp": "2026-01-28T11:16:38.066333",
+    "analysis": "Detected failure type: HTTP_5XX_SERVER_ERROR. Code: 500"
+  }
+]
