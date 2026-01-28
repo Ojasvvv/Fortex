@@ -239,7 +239,8 @@
                         <!-- UPLOAD STATE -->
                         <div id="uploadState"
                             class="absolute inset-0 flex flex-col items-center justify-center p-8 transition-all duration-500">
-                            <input type="file" id="fileInput" class="hidden" accept="image/*">
+                            <input type="file" id="fileInput" class="hidden"
+                                accept="image/*,video/mp4,video/quicktime,video/x-msvideo">
                             <label for="fileInput"
                                 class="cursor-pointer flex flex-col items-center gap-6 group-hover/upload:scale-105 transition-transform duration-500">
                                 <div
@@ -252,7 +253,7 @@
                                 </div>
                                 <div class="text-center">
                                     <span class="text-lg text-white font-medium block mb-1">Select Asset</span>
-                                    <span class="text-sm text-zinc-500">JPG, PNG up to 50MB</span>
+                                    <span class="text-sm text-zinc-500">Images & Videos up to 500MB</span>
                                 </div>
                             </label>
                         </div>
@@ -260,7 +261,8 @@
                         <!-- RESULT STATE -->
                         <div id="resultState"
                             class="absolute inset-0 flex items-center justify-center bg-[#0B0C0E] opacity-0 pointer-events-none transition-opacity duration-500">
-                            <img id="resultImage" class="w-full h-full object-contain p-8" />
+                            <img id="resultImage" class="w-full h-full object-contain p-8 hidden" />
+                            <video id="resultVideo" class="w-full h-full object-contain p-8 hidden" controls></video>
                         </div>
                     </div>
 
@@ -278,7 +280,7 @@
                             </div>
 
                             <div
-                                class="p-4 rounded-lg bg-[#0B0C0E] border border-white/5 h-48 overflow-hidden relative w-full">
+                                class="p-4 rounded-lg bg-[#0B0C0E] border border-white/5 h-32 overflow-hidden relative w-full mb-10">
                                 <pre id="keyDisplay"
                                     class="font-mono text-[10px] text-zinc-500 break-all whitespace-pre-wrap h-full overflow-y-auto">Waiting for generation...</pre>
                             </div>
@@ -302,7 +304,12 @@
                             </div>
 
                             <textarea id="keyInput" placeholder="-----BEGIN PUBLIC KEY-----..."
-                                class="w-full p-4 rounded-lg bg-[#0B0C0E] border border-white/10 h-48 font-mono text-[10px] text-zinc-300 focus:outline-none focus:border-white/20 resize-none"></textarea>
+                                class="w-full p-4 rounded-lg bg-[#0B0C0E] border border-white/10 h-32 font-mono text-[10px] text-zinc-300 focus:outline-none focus:border-white/20 resize-none mb-4"></textarea>
+
+                            <button id="verifyActionBtn"
+                                class="hidden w-full py-4 rounded-lg bg-zinc-200 text-ink-950 text-sm font-medium hover:bg-zinc-300 transition-all shadow-[0_0_15px_rgba(255,255,255,0.05)] mb-2">
+                                Verify Asset
+                            </button>
 
                             <div id="verifyResultContainer" class="hidden w-full">
                                 <div class="px-4 py-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 flex items-center justify-center gap-2 mb-4"
@@ -362,7 +369,8 @@
         });
 
         // Application Logic
-        const fileInput = document.getElementById('fileInput');
+        let fileInput = document.getElementById('fileInput');
+        let pendingFile = null;
 
         // UI Elements
         const uploadState = document.getElementById('uploadState');
@@ -381,6 +389,7 @@
         const verifyResultContainer = document.getElementById('verifyResultContainer');
         const verifyBadge = document.getElementById('verifyBadge');
         const verifyText = document.getElementById('verifyText');
+        const verifyActionBtn = document.getElementById('verifyActionBtn');
 
         const signResetBtn = document.getElementById('signResetBtn');
         const verifyResetBtn = document.getElementById('verifyResetBtn');
@@ -418,10 +427,30 @@
         modeVerify.addEventListener('click', () => setMode('verify'));
 
         function resetUI() {
+            pendingFile = null;
             // Reset Left Column
             resultState.classList.add('opacity-0', 'pointer-events-none');
             uploadState.classList.remove('opacity-0', 'pointer-events-none');
-            fileInput.value = '';
+
+            // Restore Original Upload State HTML
+            uploadState.innerHTML = `
+                <input type="file" id="fileInput" class="hidden" accept="image/*,video/mp4,video/quicktime,video/x-msvideo">
+                <label for="fileInput" class="cursor-pointer flex flex-col items-center gap-6 group-hover/upload:scale-105 transition-transform duration-500">
+                    <div class="w-20 h-20 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors">
+                        <svg class="w-8 h-8 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1" d="M12 4v16m8-8H4" />
+                        </svg>
+                    </div>
+                    <div class="text-center">
+                        <span class="text-lg text-white font-medium block mb-1">Select Asset</span>
+                        <span class="text-sm text-zinc-500">Images & Videos up to 500MB</span>
+                    </div>
+                </label>
+            `;
+
+            // Re-bind Listener
+            fileInput = document.getElementById('fileInput');
+            fileInput.addEventListener('change', handleFileSelect);
 
             // Reset Right Column (Sign)
             signResetBtn.classList.add('opacity-50', 'pointer-events-none');
@@ -430,27 +459,53 @@
             // Reset Right Column (Verify)
             keyInput.value = '';
             verifyResultContainer.classList.add('hidden');
-            verifyResetBtn.classList.remove('hidden'); // Ensure visible initially? Actually maybe keep separate logic
+            verifyActionBtn.classList.add('hidden');
+            verifyResetBtn.classList.remove('hidden');
         }
 
         signResetBtn.addEventListener('click', resetUI);
         verifyResetBtn.addEventListener('click', resetUI);
 
-        fileInput.addEventListener('change', async (e) => {
+        // Manual Verify Trigger
+        verifyActionBtn.addEventListener('click', async () => {
+            if (pendingFile) {
+                loading.classList.remove('opacity-0', 'pointer-events-none');
+                loadingText.textContent = 'Verifying Cryptographic Proof...';
+                await handleVerifyFlow(pendingFile);
+            }
+        });
+
+        async function handleFileSelect(e) {
             const file = e.target.files[0];
             if (!file) return;
-
-            // Start Loading
-            loading.classList.remove('opacity-0', 'pointer-events-none');
+            pendingFile = file;
 
             if (currentMode === 'sign') {
+                loading.classList.remove('opacity-0', 'pointer-events-none');
                 loadingText.textContent = 'Injecting Adversarial Noise...';
                 await handleSignFlow(file);
             } else {
-                loadingText.textContent = 'Verifying Cryptographic Proof...';
-                await handleVerifyFlow(file);
+                // VERIFY MODE: STAGE FILE
+                uploadState.innerHTML = `
+                    <div class="flex flex-col items-center gap-6 animate-[reveal_0.4s_ease]">
+                        <div class="w-20 h-20 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center">
+                            <svg class="w-8 h-8 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <div class="text-center">
+                            <span class="text-lg text-white font-medium block mb-1">Asset Ready</span>
+                            <span class="text-sm text-zinc-500 font-mono">${file.name}</span>
+                        </div>
+                    </div>
+                `;
+                verifyActionBtn.classList.remove('hidden');
+                verifyResetBtn.classList.add('hidden');
             }
-        });
+        }
+
+        // Initial Bind
+        fileInput.addEventListener('change', handleFileSelect);
 
         async function handleSignFlow(file) {
             const formData = new FormData();
@@ -468,7 +523,16 @@
                 const keyData = await keyResponse.json();
 
                 // 3. Update UI
-                resultImage.src = url;
+                if (file.type.startsWith('image/')) {
+                    resultImage.src = url;
+                    resultImage.classList.remove('hidden');
+                    resultVideo.classList.add('hidden');
+                } else {
+                    resultVideo.src = url;
+                    resultVideo.classList.remove('hidden');
+                    resultImage.classList.add('hidden');
+                }
+
                 uploadState.classList.add('opacity-0', 'pointer-events-none');
                 resultState.classList.remove('opacity-0', 'pointer-events-none');
 
@@ -492,40 +556,83 @@
 
             // Append optional key from textarea
             const userKey = keyInput.value.trim();
+
+            if (!userKey) {
+                loadingText.textContent = 'Error: Key Required';
+                setTimeout(() => loading.classList.add('opacity-0', 'pointer-events-none'), 2000);
+                return;
+            }
+
             if (userKey) {
                 formData.append('key', userKey);
             }
 
             try {
                 const response = await fetch('/api/verify', { method: 'POST', body: formData });
-                if (!response.ok) throw new Error('Verification failed');
+
+                if (!response.ok) {
+                    throw new Error('Verification request failed');
+                }
+
                 const data = await response.json();
 
-                // Show Image
+                // Show Image or Video
                 const url = URL.createObjectURL(file);
-                resultImage.src = url;
+                if (file.type.startsWith('image/')) {
+                    resultImage.src = url;
+                    resultImage.classList.remove('hidden');
+                    resultVideo.classList.add('hidden');
+                } else {
+                    resultVideo.src = url;
+                    resultVideo.classList.remove('hidden');
+                    resultImage.classList.add('hidden');
+                }
+
                 uploadState.classList.add('opacity-0', 'pointer-events-none');
                 resultState.classList.remove('opacity-0', 'pointer-events-none');
 
                 // Show Badge
                 verifyResultContainer.classList.remove('hidden');
+                verifyActionBtn.classList.add('hidden');
+                verifyResetBtn.classList.remove('hidden');
 
                 if (data.status === 'VERIFIED' || data.status === 'AUTHENTIC') {
-                    verifyBadge.className = "px-4 py-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 flex items-center justify-center gap-2 mb-4";
+                    verifyBadge.className = "px-4 py-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 flex items-center justify-center gap-2";
                     verifyText.textContent = "VERIFIED AUTHENTIC";
                 } else {
-                    verifyBadge.className = "px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center gap-2 mb-4";
+                    verifyBadge.className = "px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center gap-2";
                     verifyText.textContent = "TAMPER DETECTED";
                 }
 
             } catch (error) {
                 console.error(error);
-                loadingText.textContent = 'Error: Verification Failure';
-                setTimeout(() => loading.classList.add('opacity-0', 'pointer-events-none'), 2000);
-            } finally {
-                if (loadingText.textContent !== 'Error: Verification Failure') {
-                    loading.classList.add('opacity-0', 'pointer-events-none');
+                // Treat errors as Tamper Detected / Verification Failed in UI
+                loading.classList.add('opacity-0', 'pointer-events-none');
+
+                // Show Result UI with Failure (Ensure preview is accessible)
+                const url = URL.createObjectURL(file);
+                if (file.type.startsWith('image/')) {
+                    resultImage.src = url;
+                    resultImage.classList.remove('hidden');
+                    resultVideo.classList.add('hidden');
+                } else {
+                    resultVideo.src = url;
+                    resultVideo.classList.remove('hidden');
+                    resultImage.classList.add('hidden');
                 }
+
+                // Show Result UI with Failure
+                uploadState.classList.add('opacity-0', 'pointer-events-none');
+                verifyResultContainer.classList.remove('hidden');
+                verifyActionBtn.classList.add('hidden');
+                verifyResetBtn.classList.remove('hidden');
+
+                verifyBadge.className = "px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center gap-2";
+                verifyText.textContent = "VERIFICATION FAILED";
+
+            } finally {
+                // Ensure loading is gone
+                loading.classList.add('opacity-0', 'pointer-events-none');
             }
         }
     </script>
