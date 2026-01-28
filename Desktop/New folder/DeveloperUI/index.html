@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hemlock - Cryptographic Provenance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        ink: {
+                            50: '#f9fafb',
+                            100: '#f3f4f6',
+                            800: '#27272a',
+                            900: '#18181b',
+                            950: '#0B0C0E',
+                        },
+                        glass: {
+                            100: 'rgba(255, 255, 255, 0.05)',
+                            200: 'rgba(255, 255, 255, 0.1)',
+                        }
+                    },
+                    fontSize: {
+                        'hero': ['5.5rem', { lineHeight: '0.92', letterSpacing: '-0.04em' }],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'reveal': 'reveal 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        reveal: {
+                            '0%': { opacity: '0', transform: 'translateY(12px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        shimmer: {
+                            '0%': { transform: 'translateX(-100%)' },
+                            '100%': { transform: 'translateX(100%)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* 3D Perspective Container */
+        .perspective-container {
+            perspective: 2000px;
+        }
+
+        /* The 3D Object */
+        .hero-interface {
+            transform: rotateX(20deg) rotateY(-10deg) rotateZ(5deg) scale(0.9);
+            transform-style: preserve-3d;
+            box-shadow:
+                0 0 0 1px rgba(255, 255, 255, 0.1),
+                0 20px 50px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .hero-interface::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, transparent 40%);
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-ink-950 text-white font-sans h-screen flex flex-col overflow-hidden selection:bg-white selection:text-ink-950">
+
+    <!-- Background Texture -->
+    <div class="fixed inset-0 pointer-events-none z-0">
+        <!-- Radial Glow -->
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(120,119,198,0.1),rgba(0,0,0,0))]">
+        </div>
+        <!-- Grid -->
+        <div
+            class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImEiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTTAgNDBoNDBNNDAgMGgwIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4wMykiIGZpbGw9Im5vbmUiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjYSkiLz48L3N2Zz4=')] opacity-40">
+        </div>
+    </div>
+
+    <!-- WRAPPER -->
+    <div class="relative w-full h-full perspective-container">
+
+        <!-- VIEW 1: LANDING -->
+        <main id="landing-view"
+            class="absolute inset-0 w-full h-full flex flex-col items-center pt-40 z-40 transition-transform duration-700 cubic-bezier(0.16, 1, 0.3, 1)">
+
+
+
+            <div
+                class="w-full max-w-[1600px] px-8 md:px-12 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-32 h-full relative z-10 pb-12 items-center">
+
+                <!-- LEFT COLUMN: HERO (Dominant) -->
+                <div class="flex flex-col items-start text-left gap-8 self-center">
+
+                    <!-- BRANDING: Integrated -->
+                    <span
+                        class="text-xl md:text-2xl font-mono tracking-[0.4em] text-white/60 uppercase opacity-0 animate-[reveal_0.6s_cubic-bezier(0.2,0.8,0.2,1)_0.1s_forwards]">
+                        HEMLOCK
+                    </span>
+
+                    <h1
+                        class="text-6xl md:text-[7rem] leading-[0.9] font-medium tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60 pb-2 opacity-0 animate-[reveal_0.6s_cubic-bezier(0.2,0.8,0.2,1)_0.2s_forwards]">
+                        Cryptographic<br>
+                        provenance.
+                    </h1>
+
+                    <p
+                        class="text-lg text-zinc-400 max-w-lg leading-relaxed opacity-0 animate-[reveal_0.6s_cubic-bezier(0.2,0.8,0.2,1)_0.2s_forwards]">
+                        The primitives for modern authenticity. Protect your creative work from unauthorized AI training
+                        with invisible adversarial noise.
+                    </p>
+
+                    <!-- CTA -->
+                    <div
+                        class="mt-4 opacity-0 animate-[reveal_0.6s_cubic-bezier(0.2,0.8,0.2,1)_0.3s_forwards] relative z-[60]">
+                        <button id="enterAppBtn"
+                            class="group inline-flex items-center justify-center bg-white text-ink-950 h-14 px-10 rounded-full text-sm font-medium transition-all hover:bg-zinc-200 active:scale-95 shadow-[0_0_10px_rgba(255,255,255,0.05)] cursor-pointer">
+                            Start Protecting
+                            <svg class="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5"
+                                    d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN: INFO GRID (Supporting) -->
+                <div
+                    class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-16 opacity-0 animate-[reveal_0.6s_cubic-bezier(0.2,0.8,0.2,1)_0.4s_forwards]">
+
+                    <!-- Item 1 -->
+                    <div class="flex flex-col gap-2">
+                        <span class="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Defense Layer</span>
+                        <h3 class="text-white text-2xl font-medium">Invisible Armor</h3>
+                        <p class="text-sm text-zinc-400 leading-relaxed">
+                            Adversarial noise that remains imperceptible to the human eye but shatters the feature
+                            extraction layers of scrapers.
+                        </p>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="flex flex-col gap-2">
+                        <span class="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Provenance
+                            Layer</span>
+                        <h3 class="text-white text-2xl font-medium">Cryptographic Proof</h3>
+                        <p class="text-sm text-zinc-400 leading-relaxed">
+                            Each processed asset is signed with a unique RSA keypair, establishing mathematical
+                            provenance for your work.
+                        </p>
+                    </div>
+
+                    <!-- Item 3 -->
+                    <div class="flex flex-col gap-2">
+                        <span class="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">01. Scan</span>
+                        <h3 class="text-white text-2xl font-medium">Perceptual Hashing</h3>
+                        <p class="text-sm text-zinc-400 leading-relaxed">
+                            The engine maps high-frequency texture tokens to identify vulnerable feature vectors.
+                        </p>
+                    </div>
+
+                    <!-- Item 4 -->
+                    <div class="flex flex-col gap-2">
+                        <span class="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">02. Inject</span>
+                        <h3 class="text-white text-2xl font-medium">Psychovisual Masking</h3>
+                        <p class="text-sm text-zinc-400 leading-relaxed">
+                            Noise is injected into texture-rich regions, disrupting AI training while preserving
+                            aesthetics.
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Bottom Fading Gradient -->
+            <div
+                class="absolute bottom-0 w-full h-32 bg-gradient-to-t from-[#0B0C0E] to-transparent z-50 pointer-events-none">
+            </div>
+        </main>
+
+
+        <!-- VIEW 2: APP (The "Tool") -->
+        <main id="app-view"
+            class="absolute inset-0 w-full h-full bg-[#0B0C0E] z-30 flex flex-col items-center justify-center opacity-0 translate-y-12 transition-all duration-700 cubic-bezier(0.16, 1, 0.3, 1) pointer-events-none">
+
+            <!-- Back Button -->
+            <button id="backBtn"
+                class="absolute top-12 left-8 md:left-12 text-xs font-medium text-zinc-500 hover:text-white transition-colors uppercase tracking-wider flex items-center gap-2 z-50">
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back
+            </button>
+
+            <!-- CENTRAL CONTAINER -->
+            <div class="w-full max-w-6xl px-6 flex flex-col items-center justify-center relative">
+
+                <!-- Header -->
+                <div class="text-center mb-10">
+                    <!-- TOGGLE SWITCH -->
+                    <div class="inline-flex bg-white/5 p-1 rounded-full mb-6 border border-white/10">
+                        <button id="modeSign"
+                            class="w-36 h-10 rounded-full text-sm font-medium text-ink-950 bg-white transition-all shadow-sm flex items-center justify-center">Sign</button>
+                        <button id="modeVerify"
+                            class="w-36 h-10 rounded-full text-sm font-medium text-zinc-500 hover:text-white transition-all flex items-center justify-center">Verify</button>
+                    </div>
+
+                    <h2 class="text-2xl font-medium text-white tracking-tight" id="appTitle">Injection Console</h2>
+                </div>
+
+                <!-- SPLIT LAYOUT CARD -->
+                <div
+                    class="w-full bg-[#131416] border border-white/5 rounded-2xl overflow-hidden relative shadow-2xl transition-all duration-500 group grid grid-cols-1 md:grid-cols-2 h-[550px]">
+
+                    <!-- LEFT COL: IMAGE INTERACTION -->
+                    <div class="relative border-r border-white/5 bg-[#0B0C0E]/50 flex flex-col">
+                        <!-- UPLOAD STATE -->
+                        <div id="uploadState"
+                            class="absolute inset-0 flex flex-col items-center justify-center p-8 transition-all duration-500">
+                            <input type="file" id="fileInput" class="hidden" accept="image/*">
+                            <label for="fileInput"
+                                class="cursor-pointer flex flex-col items-center gap-6 group-hover/upload:scale-105 transition-transform duration-500">
+                                <div
+                                    class="w-20 h-20 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors">
+                                    <svg class="w-8 h-8 text-zinc-400" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor">
+                                        <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1"
+                                            d="M12 4v16m8-8H4" />
+                                    </svg>
+                                </div>
+                                <div class="text-center">
+                                    <span class="text-lg text-white font-medium block mb-1">Select Asset</span>
+                                    <span class="text-sm text-zinc-500">JPG, PNG up to 50MB</span>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- RESULT STATE -->
+                        <div id="resultState"
+                            class="absolute inset-0 flex items-center justify-center bg-[#0B0C0E] opacity-0 pointer-events-none transition-opacity duration-500">
+                            <img id="resultImage" class="w-full h-full object-contain p-8" />
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COL: KEY & INFO -->
+                    <div class="relative bg-[#131416] flex flex-col p-8 md:p-12 justify-center">
+
+                        <!-- SIGN MODE INFO (Read-only Key) -->
+                        <div id="signInfo" class="flex flex-col gap-6 transition-all duration-500 w-full">
+                            <div class="w-full">
+                                <h3 class="text-lg font-medium text-white mb-2">Cryptographic Signature</h3>
+                                <p class="text-sm text-zinc-400 leading-relaxed">
+                                    This asset is being signed with a unique RSA-2048 keypair. The public key below is
+                                    required for future verification.
+                                </p>
+                            </div>
+
+                            <div
+                                class="p-4 rounded-lg bg-[#0B0C0E] border border-white/5 h-48 overflow-hidden relative w-full">
+                                <pre id="keyDisplay"
+                                    class="font-mono text-[10px] text-zinc-500 break-all whitespace-pre-wrap h-full overflow-y-auto">Waiting for generation...</pre>
+                            </div>
+
+                            <button
+                                class="resetAction w-full py-3 rounded-lg border border-white/10 text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-all opacity-50 pointer-events-none"
+                                id="signResetBtn">
+                                Process Another Asset
+                            </button>
+                        </div>
+
+                        <!-- VERIFY MODE INFO (Input Key) -->
+                        <div id="verifyInfo"
+                            class="flex flex-col gap-6 transition-all duration-500 hidden opacity-0 translate-x-8 absolute inset-0 p-8 md:p-12 justify-center w-full">
+                            <div class="w-full">
+                                <h3 class="text-lg font-medium text-white mb-2">Verification Key</h3>
+                                <p class="text-sm text-zinc-400 leading-relaxed">
+                                    Paste the public key associated with this asset to verify its authenticity and
+                                    provenance.
+                                </p>
+                            </div>
+
+                            <textarea id="keyInput" placeholder="-----BEGIN PUBLIC KEY-----..."
+                                class="w-full p-4 rounded-lg bg-[#0B0C0E] border border-white/10 h-48 font-mono text-[10px] text-zinc-300 focus:outline-none focus:border-white/20 resize-none"></textarea>
+
+                            <div id="verifyResultContainer" class="hidden w-full">
+                                <div class="px-4 py-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 flex items-center justify-center gap-2 mb-4"
+                                    id="verifyBadge">
+                                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                    <span class="text-sm font-medium tracking-wide" id="verifyText">AUTHENTIC</span>
+                                </div>
+                            </div>
+
+                            <button
+                                class="resetAction w-full py-3 rounded-lg border border-white/10 text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-all"
+                                id="verifyResetBtn">
+                                Scan Another Asset
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <!-- LOADING OVERLAY -->
+                    <div id="loading"
+                        class="absolute inset-0 bg-[#0B0C0E]/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+                        <div class="w-px h-16 bg-zinc-800 overflow-hidden relative mb-4">
+                            <div class="absolute inset-0 bg-white animate-[shimmer_1s_infinite]"></div>
+                        </div>
+                        <span class="text-xs font-mono text-white uppercase tracking-widest"
+                            id="loadingText">Processing...</span>
+                    </div>
+
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <style>
+        .mix-blend-difference {
+            mix-blend-mode: difference;
+        }
+    </style>
+    <script>
+        // Transition Logic
+        const landingView = document.getElementById('landing-view');
+        const appView = document.getElementById('app-view');
+        const enterBtn = document.getElementById('enterAppBtn');
+        const backBtn = document.getElementById('backBtn');
+
+        enterBtn.addEventListener('click', () => {
+            landingView.style.transform = 'translateY(-100%)';
+            appView.classList.remove('opacity-0', 'translate-y-12', 'pointer-events-none');
+            window.history.pushState({}, '', '/#app');
+        });
+
+        backBtn.addEventListener('click', () => {
+            landingView.style.transform = 'translateY(0)';
+            appView.classList.add('opacity-0', 'translate-y-12', 'pointer-events-none');
+            window.history.pushState({}, '', '/');
+        });
+
+        // Application Logic
+        const fileInput = document.getElementById('fileInput');
+
+        // UI Elements
+        const uploadState = document.getElementById('uploadState');
+        const resultState = document.getElementById('resultState');
+        const resultImage = document.getElementById('resultImage');
+        const loading = document.getElementById('loading');
+        const loadingText = document.getElementById('loadingText');
+        const appTitle = document.getElementById('appTitle');
+
+        // Split View Elements
+        const signInfo = document.getElementById('signInfo');
+        const verifyInfo = document.getElementById('verifyInfo');
+        const keyDisplay = document.getElementById('keyDisplay');
+        const keyInput = document.getElementById('keyInput');
+
+        const verifyResultContainer = document.getElementById('verifyResultContainer');
+        const verifyBadge = document.getElementById('verifyBadge');
+        const verifyText = document.getElementById('verifyText');
+
+        const signResetBtn = document.getElementById('signResetBtn');
+        const verifyResetBtn = document.getElementById('verifyResetBtn');
+
+        // Toggle Logic
+        let currentMode = 'sign';
+        const modeSign = document.getElementById('modeSign');
+        const modeVerify = document.getElementById('modeVerify');
+
+        function setMode(mode) {
+            currentMode = mode;
+            if (mode === 'sign') {
+                // Button Styles
+                modeSign.className = "w-36 h-10 rounded-full text-sm font-medium text-ink-950 bg-white transition-all shadow-sm flex items-center justify-center";
+                modeVerify.className = "w-36 h-10 rounded-full text-sm font-medium text-zinc-500 hover:text-white transition-all flex items-center justify-center";
+                appTitle.textContent = "Injection Console";
+
+                // Content Visibility
+                signInfo.classList.remove('hidden', 'opacity-0', 'translate-x-8', 'absolute');
+                verifyInfo.classList.add('hidden', 'opacity-0', 'translate-x-8', 'absolute');
+            } else {
+                // Button Styles
+                modeVerify.className = "w-36 h-10 rounded-full text-sm font-medium text-ink-950 bg-white transition-all shadow-sm flex items-center justify-center";
+                modeSign.className = "w-36 h-10 rounded-full text-sm font-medium text-zinc-500 hover:text-white transition-all flex items-center justify-center";
+                appTitle.textContent = "Verification Engine";
+
+                // Content Visibility
+                verifyInfo.classList.remove('hidden', 'opacity-0', 'translate-x-8', 'absolute');
+                signInfo.classList.add('hidden', 'opacity-0', 'translate-x-8', 'absolute');
+            }
+            resetUI();
+        }
+
+        modeSign.addEventListener('click', () => setMode('sign'));
+        modeVerify.addEventListener('click', () => setMode('verify'));
+
+        function resetUI() {
+            // Reset Left Column
+            resultState.classList.add('opacity-0', 'pointer-events-none');
+            uploadState.classList.remove('opacity-0', 'pointer-events-none');
+            fileInput.value = '';
+
+            // Reset Right Column (Sign)
+            signResetBtn.classList.add('opacity-50', 'pointer-events-none');
+            keyDisplay.textContent = "Waiting for generation...";
+
+            // Reset Right Column (Verify)
+            keyInput.value = '';
+            verifyResultContainer.classList.add('hidden');
+            verifyResetBtn.classList.remove('hidden'); // Ensure visible initially? Actually maybe keep separate logic
+        }
+
+        signResetBtn.addEventListener('click', resetUI);
+        verifyResetBtn.addEventListener('click', resetUI);
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Start Loading
+            loading.classList.remove('opacity-0', 'pointer-events-none');
+
+            if (currentMode === 'sign') {
+                loadingText.textContent = 'Injecting Adversarial Noise...';
+                await handleSignFlow(file);
+            } else {
+                loadingText.textContent = 'Verifying Cryptographic Proof...';
+                await handleVerifyFlow(file);
+            }
+        });
+
+        async function handleSignFlow(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                // 1. Process
+                const response = await fetch('/api/protect', { method: 'POST', body: formData });
+                if (!response.ok) throw new Error('Processing failed');
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+
+                // 2. Key
+                const keyResponse = await fetch('/api/public-key');
+                const keyData = await keyResponse.json();
+
+                // 3. Update UI
+                resultImage.src = url;
+                uploadState.classList.add('opacity-0', 'pointer-events-none');
+                resultState.classList.remove('opacity-0', 'pointer-events-none');
+
+                keyDisplay.textContent = keyData.key || "Key unavailable";
+                signResetBtn.classList.remove('opacity-50', 'pointer-events-none');
+
+            } catch (error) {
+                console.error(error);
+                loadingText.textContent = 'Error: System Failure';
+                setTimeout(() => loading.classList.add('opacity-0', 'pointer-events-none'), 2000);
+            } finally {
+                if (loadingText.textContent !== 'Error: System Failure') {
+                    loading.classList.add('opacity-0', 'pointer-events-none');
+                }
+            }
+        }
+
+        async function handleVerifyFlow(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Append optional key from textarea
+            const userKey = keyInput.value.trim();
+            if (userKey) {
+                formData.append('key', userKey);
+            }
+
+            try {
+                const response = await fetch('/api/verify', { method: 'POST', body: formData });
+                if (!response.ok) throw new Error('Verification failed');
+                const data = await response.json();
+
+                // Show Image
+                const url = URL.createObjectURL(file);
+                resultImage.src = url;
+                uploadState.classList.add('opacity-0', 'pointer-events-none');
+                resultState.classList.remove('opacity-0', 'pointer-events-none');
+
+                // Show Badge
+                verifyResultContainer.classList.remove('hidden');
+
+                if (data.status === 'VERIFIED' || data.status === 'AUTHENTIC') {
+                    verifyBadge.className = "px-4 py-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 flex items-center justify-center gap-2 mb-4";
+                    verifyText.textContent = "VERIFIED AUTHENTIC";
+                } else {
+                    verifyBadge.className = "px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center gap-2 mb-4";
+                    verifyText.textContent = "TAMPER DETECTED";
+                }
+
+            } catch (error) {
+                console.error(error);
+                loadingText.textContent = 'Error: Verification Failure';
+                setTimeout(() => loading.classList.add('opacity-0', 'pointer-events-none'), 2000);
+            } finally {
+                if (loadingText.textContent !== 'Error: Verification Failure') {
+                    loading.classList.add('opacity-0', 'pointer-events-none');
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
